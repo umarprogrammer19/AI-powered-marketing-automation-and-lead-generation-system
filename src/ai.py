@@ -1,6 +1,17 @@
 from openai import OpenAI
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    raise Exception("OPENAI_API_KEY is missing! Add it to .env")
+
 client = OpenAI()
+
 
 def analyze_text(text, platform):
     prompt = f"""
@@ -20,10 +31,9 @@ def analyze_text(text, platform):
     """
 
     res = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[{"role": "user", "content": prompt}]
+        model="gpt-4.1-mini", messages=[{"role": "user", "content": prompt}]
     )
-    
+
     message = res.choices[0].message.content
 
     try:
