@@ -8,16 +8,24 @@ app = FastAPI()
 
 @app.post("/webhook/reddit")
 async def reddit_webhook(request: Request):
-    data = await request.json()
+    payload = await request.json()
 
-    text = data.get("text") or data.get("title")
-    url = data.get("url")
+    text = payload.get("text") or payload.get("title")
+    url = payload.get("url")
+    subreddit = payload.get("communityName")
 
-    ai = analyze_text(text, "reddit")
+    if not text or not url:
+        return {"status": "ignored"}
 
-    save_lead(text, url, ai)
+    ai = analyze_text(text, platform="reddit")
 
-    logger.info(f"Received Webhook Data: {data}")
-    logger.info(f"AI Result: {ai}")
+    save_lead(
+        content=text,
+        url=url,
+        intent=ai["intent"],
+        score=ai["score"],
+        outreach=ai["outreach"],
+        subreddit=subreddit,
+    )
 
-    return {"status": "received", "ai": ai}
+    return {"status": "lead_saved"}
