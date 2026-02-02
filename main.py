@@ -30,9 +30,15 @@ def run_reddit():
         if isinstance(ai, str):
             ai = json.loads(ai)
 
-        if ai["intent"] == "buyer" and ai["score"] != "low":
-            save_lead(text, url, subreddit, ai)
-            saved += 1
+            # Filter bad or irrelevant leads
+        if ai["intent"] in ["irrelevant"]:
+            return {"status": "not_a_lead"}
+
+        if ai["score"] == "low":
+            return {"status": "low_quality"}
+
+        save_lead(text, url, subreddit, ai)
+        saved += 1
 
     return {"status": "completed", "total_posts": len(items), "leads_saved": saved}
 
