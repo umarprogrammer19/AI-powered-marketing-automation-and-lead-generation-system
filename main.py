@@ -1,9 +1,15 @@
 from fastapi import FastAPI, Request
 from src.ai import analyze_text
 from src.db import save_lead
-from src.logger import logger
+from src.apify_runner import run_reddit_actor
 
 app = FastAPI()
+
+
+@app.post("/run/reddit")
+def run_reddit():
+    run = run_reddit_actor()
+    return {"status": "actor_started", "runId": run["data"]["id"]}
 
 
 @app.post("/webhook/reddit")
@@ -17,15 +23,11 @@ async def reddit_webhook(request: Request):
     if not text or not url:
         return {"status": "ignored"}
 
-    ai = analyze_text(text, platform="reddit")
+    ai = analyze_text(text, "reddit")
 
-    save_lead(
-        content=text,
-        url=url,
-        intent=ai["intent"],
-        score=ai["score"],
-        outreach=ai["outreach"],
-        subreddit=subreddit,
-    )
+    if ai["intent"] != "buyer" or ai["score"] == "low":
+        return {"status": "not_a_lead"}
+
+    save_lead(text, url, subreddit, ai)
 
     return {"status": "lead_saved"}
