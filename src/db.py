@@ -6,15 +6,15 @@ key = os.getenv("SUPABASE_KEY")
 sb = create_client(url, key)
 
 
-def save_lead(content, url, intent, score, outreach, subreddit):
+def save_lead(content, url, subreddit, ai):
     sb.table("leads").insert(
         {
             "content": content,
             "url": url,
-            "intent": intent,
-            "score": score,
-            "outreach": outreach,
             "subreddit": subreddit,
+            "intent": ai["intent"],
+            "score": ai["score"],
+            "outreach": ai["outreach"],
             "status": "new",
         }
     ).execute()
