@@ -13,32 +13,27 @@ if not api_key:
 client = OpenAI()
 
 
-def analyze_text(text, platform):
+def analyze_text(text: str, platform: str):
     prompt = f"""
-    You are an AI lead qualification assistant.
-
-    Analyze the following online post:
+    You are an AI lead qualification agent.
 
     Platform: {platform}
-    Content: {text}
+    Post content: "{text}"
 
-    Return ONLY strict JSON:
-    {{
-        "intent": "...",
-        "score": "...",
-        "outreach": "..."
-    }}
-    """
+    Rules:
+    - buyer → asking for tools, services, recommendations
+    - explorer → discussion, curiosity
+    - seller → promoting own product
+    - irrelevant → memes, news, jokes
+
+    Return STRICT JSON: {{
+    "intent": "buyer|explorer|seller|irrelevant",
+    "score": "high|medium|low",
+    "outreach": "short personalized message if buyer else empty"
+    }} """
 
     res = client.chat.completions.create(
         model="gpt-4.1-mini", messages=[{"role": "user", "content": prompt}]
     )
 
-    message = res.choices[0].message.content
-
-    try:
-        return json.loads(message)
-    except:
-        # fallback if JSON not perfect
-        message = message.replace("```json", "").replace("```", "")
-        return json.loads(message)
+    return json.loads(res.choices[0].message.content)
