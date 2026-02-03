@@ -3,12 +3,9 @@ from src.ai import analyze_text
 from src.db import save_lead
 from src.apify_runner import run_reddit_actor, run_facebook_actor
 from src.intent_filter import is_domain_related
+from src.logger import logger
 import json
-import logging
 
-# Setup Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
