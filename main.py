@@ -4,6 +4,11 @@ from src.db import save_lead
 from src.apify_runner import run_reddit_actor
 from src.intent_filter import is_domain_related
 import json
+import logging
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -37,31 +42,31 @@ def run_reddit():
     return {"status": "completed", "total_posts": len(items), "leads_saved": saved}
 
 
-# @app.post("/webhook/reddit")
-# async def reddit_webhook(request: Request):
-#     payload = await request.json()
+@app.post("/webhook/reddit")
+async def reddit_webhook(request: Request):
+    payload = await request.json()
 
-#     text = payload.get("text") or payload.get("title")
-#     url = payload.get("url")
-#     subreddit = payload.get("communityName", "unknown")
-#     platform = "reddit"
+    text = payload.get("text") or payload.get("title")
+    url = payload.get("url")
+    subreddit = payload.get("communityName", "unknown")
+    platform = "reddit"
 
-#     if not text or not url:
-#         return {"status": "ignored"}
+    if not text or not url:
+        return {"status": "ignored"}
 
-#     ai = analyze_text(text, platform)
+    ai = analyze_text(text, platform)
 
-#     if isinstance(ai, str):
-#         ai = json.loads(ai)
+    if isinstance(ai, str):
+        ai = json.loads(ai)
 
-#     # Filter bad or irrelevant leads
-#     if ai["intent"] in ["irrelevant"]:
-#         return {"status": "not_a_lead"}
+    # Filter bad or irrelevant leads
+    if ai["intent"] in ["irrelevant"]:
+        return {"status": "not_a_lead"}
 
-#     if ai["score"] == "low":
-#         return {"status": "low_quality"}
+    if ai["score"] == "low":
+        return {"status": "low_quality"}
 
-#     # Save lead to Supabase
-#     save_lead(content=text, url=url, subreddit=subreddit, platform=platform, ai=ai)
+    # Save lead to Supabase
+    save_lead(content=text, url=url, subreddit=subreddit, platform=platform, ai=ai)
 
-#     return {"status": "lead_saved", "intent": ai["intent"]}
+    return {"status": "lead_saved", "intent": ai["intent"]}
