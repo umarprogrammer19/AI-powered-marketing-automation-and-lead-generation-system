@@ -128,32 +128,3 @@ def run_facebook():
 
     return {"status": "completed", "posts_scanned": len(items), "leads_saved": saved}
 
-
-@app.post("/webhook/reddit")
-async def reddit_webhook(request: Request):
-    payload = await request.json()
-
-    text = payload.get("text") or payload.get("title")
-    url = payload.get("url")
-    subreddit = payload.get("communityName", "unknown")
-    platform = "reddit"
-
-    if not text or not url:
-        return {"status": "ignored"}
-
-    ai = analyze_text(text, platform)
-
-    if isinstance(ai, str):
-        ai = json.loads(ai)
-
-    # Filter bad or irrelevant leads
-    if ai["intent"] in ["irrelevant"]:
-        return {"status": "not_a_lead"}
-
-    if ai["score"] == "low":
-        return {"status": "low_quality"}
-
-    # Save lead to Supabase
-    save_lead(content=text, url=url, subreddit=subreddit, platform=platform, ai=ai)
-
-    return {"status": "lead_saved", "intent": ai["intent"]}
