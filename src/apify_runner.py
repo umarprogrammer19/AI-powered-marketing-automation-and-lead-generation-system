@@ -48,13 +48,13 @@ def run_facebook_actor():
     payload = {
         "startUrls": [
             {"url": "https://www.facebook.com/groups/3280541332233338"},
-            {"url": "https://www.facebook.com/groups/domainbusiness"},
-            {"url": "https://www.facebook.com/groups/bestwebhostingdomainflip"},
+            # {"url": "https://www.facebook.com/groups/domainbusiness"},
+            # {"url": "https://www.facebook.com/groups/bestwebhostingdomainflip"},
         ],
-        "resultsLimit": 25,  # Fetch 25 posts per run to save credits while testing
+        "resultsLimit": 25,
         "viewOption": "CHRONOLOGICAL",  # Get newest posts first
-        "useProxy": True,
-        "proxy": {"useApifyProxy": True},
+        # "useProxy": True,
+        # "proxy": {"useApifyProxy": True},
     }
 
     # API Endpoint to run the actor and wait for results (Sync)
