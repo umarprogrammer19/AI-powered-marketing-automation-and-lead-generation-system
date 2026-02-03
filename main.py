@@ -12,31 +12,60 @@ app = FastAPI()
 
 @app.post("/run/reddit")
 def run_reddit():
+    logger.info("Starting Reddit Scraper (New Actor)...")
     items = run_reddit_actor()
+
+    if not items:
+        return {"status": "failed", "reason": "No items returned"}
 
     saved = 0
 
     for post in items:
-        text = post.get("title") or post.get("text")
-        url = post.get("url")
-        subreddit = post.get("communityName")
+        title = post.get("title", "")
+        body = post.get("body") or post.get("selftext") or post.get("text", "")
 
-        if not text or not url:
+        # Combine title + body for better AI context
+        full_text = f"{title}\n{body}".strip()
+
+        url = post.get("url") or post.get("link")
+        # New actor usually returns 'subreddit' (e.g., "r/startups")
+        subreddit = post.get("subreddit") or post.get("communityName", "unknown")
+
+        # 1. Validation
+        if not url or len(full_text) < 5:
             continue
 
-        if not is_domain_related(text):
+        # 2. Keyword Filtering
+        if not is_domain_related(full_text):
             continue
 
-        ai = analyze_text(text, "reddit")
+        # 3. AI Analysis
+        try:
+            ai_result = analyze_text(full_text, "reddit")
 
-        if isinstance(ai, str):
-            ai = json.loads(ai)
+            if isinstance(ai_result, str):
+                ai = json.loads(ai_result)
+            else:
+                ai = ai_result
 
-        if ai["intent"] == "buyer" and ai["score"] != "low":
-            save_lead(text, url, subreddit, ai)
-            saved += 1
+            # 4. Save Logic (Buyer/Seller/Founder/Investor)
+            valid_intents = ["buyer", "seller", "founder", "investor"]
 
-    return {"status": "completed", "total_posts": len(items), "leads_saved": saved}
+            if ai["intent"] in valid_intents and ai["score"] != "low":
+                save_lead(
+                    content=full_text,
+                    url=url,
+                    subreddit=subreddit,
+                    platform="reddit",
+                    ai=ai,
+                )
+                saved += 1
+
+        except Exception as e:
+            logger.error(f"Error processing Reddit post {url}: {e}")
+            continue
+
+    return {"status": "completed", "posts_scanned": len(items), "leads_saved": saved}
 
 
 @app.post("/run/facebook")
