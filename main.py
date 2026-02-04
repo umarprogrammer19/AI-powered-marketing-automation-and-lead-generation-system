@@ -24,7 +24,6 @@ def run_reddit():
         title = post.get("title", "")
         body = post.get("body") or post.get("selftext") or post.get("text", "")
 
-        # Combine title + body for better AI context
         full_text = f"{title}\n{body}".strip()
 
         url = post.get("url") or post.get("link")
