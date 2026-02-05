@@ -14,7 +14,6 @@ def run_reddit_actor():
     """
 
     # We use 'searches' instead of 'startUrls' for keywords.
-    # This is safer and prevents the 'Empty Dataset' error.
     payload = {
         "searches": [
             "domain sale",
