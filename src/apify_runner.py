@@ -67,7 +67,7 @@ def run_reddit_actor():
         return []
 
 
-# This is the Actor ID for the Facebook Groups Scraper you requested
+# Actor ID for the Facebook Groups Scraper 
 FACEBOOK_ACTOR_ID = "2chN8UQcH1CfxLRNE"
 
 
