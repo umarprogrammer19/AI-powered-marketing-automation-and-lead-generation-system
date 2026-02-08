@@ -14,42 +14,60 @@ client = OpenAI()
 
 def analyze_text(text: str, platform: str):
     prompt = f"""
-        You are an AI lead qualification assistant for Evolution.com — 
-        a premium domain buying, selling, and investment marketplace.
+        You are an AI lead qualification expert for 'Evolution.com', a premium domain marketplace.
+        
+        Your Goal: specific, high-intent leads related to DOMAIN NAMES (buying/selling/investing).
+        
+        Review this social media post from {platform}:
+        Post Content: "{text}"
+        
+        STRICT FILTERING RULES:
+        - IGNORE general web design services, SEO services, or 'DM me for crypto'.
+        - IGNORE hosting affiliate links unless they are specifically discussing a domain name.
+        - "Selling a website" is a valid 'seller' lead (as it includes a domain).
+        
+        Classify into ONE intent:
+        - "buyer"   → Wants to acquire a specific domain or is looking for names.
+        - "seller"  → Listing a domain for sale.
+        - "founder" → Needs a name for a startup/project (Implied buyer).
+        - "investor"→ Discussing domain valuation, flipping strategies.
+        - "irrelevant" → Spam, off-topic, or low-quality.
+        
+        Determine SCORE (high/medium/low):
+        - High: Specific budget mentioned, urgent language ("need cash", "ready to buy"), or premium keywords.
+        - Medium: General inquiry.
+        - Low: Vague, or looks like automated spam.
 
-        Analyze the following online post and classify domain-related intent.
-
-        Platform: {platform}
-        Post: {text}
-
-        Classify into one of:
-
-        - "buyer" → wants to buy a domain
-        - "seller" → wants to sell a domain
-        - "founder" → starting a company / naming / rebranding
-        - "investor" → domain flipping / valuations / auctions
-        - "irrelevant" → unrelated to domains
-
-        Also determine:
-        - score: high / medium / low (lead potential)
-        - context: extract domain names, budget, urgency, niche
-        - outreach: personalized Evolution.com outreach message
-
-        Return STRICT JSON ONLY:
+        Draft OUTREACH (if relevant):
+        - Keep it casual and helpful. 
+        - For Sellers: "Evolution.com can help you list this for serious buyers."
+        - For Buyers: "We have curated domains that match this vibe."
+        
+        Return JSON ONLY:
         {{
-        "intent": "",
-        "score": "",
-        "context": "",
-        "outreach": ""
-        }} """
+            "intent": "buyer | seller | founder | investor | irrelevant",
+            "score": "high | medium | low",
+            "context": "Summary of what they want (e.g. 'selling crypto.com' or 'budget $5k')",
+            "outreach": "Draft message here"
+        }}
+    """
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "Always return valid JSON only."},
-            {"role": "user", "content": prompt},
-        ],
-    )
-
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a JSON-only API. Never output markdown.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return json.dumps(
+            {"intent": "irrelevant", "score": "low", "context": "error", "outreach": ""}
+        )

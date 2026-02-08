@@ -1,36 +1,105 @@
 import requests
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
-ACTOR_ID = "trudax~reddit-scraper"
+REDDIT_ACTOR_ID = "trudax~reddit-scraper-lite"
 
 
 def run_reddit_actor():
+    """
+    Runs the Trudax Reddit Scraper Lite with keyword searches.
+    """
+
+    # We use 'searches' instead of 'startUrls' for keywords.
     payload = {
         "searches": [
-            "need a domain name",
-            "looking for domain name",
-            "help me choose a domain",
-            "domain name for startup",
-            "buying a domain",
-            "purchasing a domain",
-            "selling a domain",
-            "domain suggestions",
-            "brand name and domain",
-            "is this domain name good",
-            "where to buy domain",
-            "domain for business",
+            "domain sale",
+            "domain purchase",
+            "selling domain",
+            "buying domain",
         ],
+        "skipComments": False,
+        "skipUserPosts": False,
+        "skipCommunity": False,
         "searchPosts": True,
+        "searchComments": False,
+        "searchCommunities": False,
+        "searchUsers": False,
         "sort": "new",
-        "maxItems": 1,
-        "includeNSFW": False,
-        "proxy": {"useApifyProxy": True},
+        "time": "week",
+        "includeNSFW": True,
+        "maxItems": 20,
+        "maxPostCount": 20,
+        "proxy": {
+            "useApifyProxy": True,
+            "apifyProxyGroups": ["RESIDENTIAL"],
+        },
+        "debugMode": False,
     }
 
-    url = f"https://api.apify.com/v2/acts/{ACTOR_ID}/run-sync-get-dataset-items"
+    url = f"https://api.apify.com/v2/acts/{REDDIT_ACTOR_ID}/run-sync-get-dataset-items"
 
-    res = requests.post(url, params={"token": APIFY_TOKEN}, json=payload, timeout=300)
+    logger.info(f"Launching Reddit Scraper ({REDDIT_ACTOR_ID})...")
 
-    res.raise_for_status()
-    return res.json()
+    try:
+        # Increased timeout to 400s because searching takes time
+        res = requests.post(
+            url, params={"token": APIFY_TOKEN}, json=payload, timeout=400
+        )
+
+        if res.status_code == 403:
+            logger.error(
+                f"PERMISSION DENIED: Go to https://apify.com/{REDDIT_ACTOR_ID.replace('~', '/')} and add it to your account."
+            )
+            return []
+
+        res.raise_for_status()
+        data = res.json()
+
+        logger.info(f"Found {len(data)} items.")
+        return data
+
+    except Exception as e:
+        logger.error(f"Error running Reddit Actor: {e}")
+        return []
+
+
+# This is the Actor ID for the Facebook Groups Scraper you requested
+FACEBOOK_ACTOR_ID = "2chN8UQcH1CfxLRNE"
+
+
+def run_facebook_actor():
+    """
+    Runs the Apify Facebook Groups Scraper for specific groups
+    and returns the posts found.
+    """
+    payload = {
+        "startUrls": [
+            {"url": "https://www.facebook.com/groups/3280541332233338"},
+            # {"url": "https://www.facebook.com/groups/domainbusiness"},
+            # {"url": "https://www.facebook.com/groups/bestwebhostingdomainflip"},
+        ],
+        "resultsLimit": 25,
+        "viewOption": "CHRONOLOGICAL",
+    }
+
+    # API Endpoint to run the actor and wait for results (Sync)
+    url = (
+        f"https://api.apify.com/v2/acts/{FACEBOOK_ACTOR_ID}/run-sync-get-dataset-items"
+    )
+
+    try:
+        res = requests.post(
+            url, params={"token": APIFY_TOKEN}, json=payload, timeout=400
+        )
+        res.raise_for_status()
+        return res.json()
+    except requests.exceptions.HTTPError as e:
+        print(f"Apify Error: {e.response.text}")
+        return []
+    except Exception as e:
+        print(f"General Error: {e}")
+        return []
