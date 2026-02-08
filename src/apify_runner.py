@@ -5,8 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
-REDDIT_ACTOR_ID = "trudax~reddit-scraper-lite"
 
+# Actor ID for the Reddit Scraper
+REDDIT_ACTOR_ID = "trudax~reddit-scraper-lite"
 
 def run_reddit_actor():
     """
@@ -67,7 +68,7 @@ def run_reddit_actor():
         return []
 
 
-# Actor ID for the Facebook Groups Scraper 
+# Actor ID for the Facebook Groups Scraper
 FACEBOOK_ACTOR_ID = "2chN8UQcH1CfxLRNE"
 
 
