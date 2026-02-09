@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from src.ai import analyze_text
 from src.db import save_lead
 from src.apify_runner import run_reddit_actor, run_facebook_actor
@@ -6,8 +7,20 @@ from src.intent_filter import is_domain_related
 from src.logger import logger
 import json
 
-
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/run/reddit")
@@ -126,4 +139,3 @@ def run_facebook():
             continue
 
     return {"status": "completed", "posts_scanned": len(items), "leads_saved": saved}
-
