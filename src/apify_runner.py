@@ -1,13 +1,15 @@
 import requests
 import os
 import logging
-
+from dotenv import load_dotenv
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
 
 # Actor ID for the Reddit Scraper
 REDDIT_ACTOR_ID = "trudax~reddit-scraper-lite"
+
 
 def run_reddit_actor():
     """
@@ -16,11 +18,13 @@ def run_reddit_actor():
 
     # We use 'searches' instead of 'startUrls' for keywords.
     payload = {
-        "searches": [
-            "domain sale",
-            "domain purchase",
-            "selling domain",
-            "buying domain",
+        "startUrls": [
+            {
+                "url": "https://www.reddit.com/search/?q=domain+sell&cId=d7fca666-85b5-46d6-9b27-803a1ead4315&iId=aa9f11d2-3cb0-4565-a928-b5e331309714"
+            },
+            {
+                "url": "https://www.reddit.com/search/?q=domain+buyer&cId=13adbc64-ab07-4c64-a8b5-1f7d10424813&iId=7440d313-7fd2-4e81-ba35-3618eed7bea7"
+            },
         ],
         "skipComments": False,
         "skipUserPosts": False,
@@ -79,8 +83,8 @@ def run_facebook_actor():
     """
     payload = {
         "startUrls": [
-            {"url": "https://www.facebook.com/groups/3280541332233338"},
-            # {"url": "https://www.facebook.com/groups/domainbusiness"},
+            # {"url": "https://www.facebook.com/groups/3280541332233338"},
+            {"url": "https://www.facebook.com/groups/domainbusiness"},
             # {"url": "https://www.facebook.com/groups/bestwebhostingdomainflip"},
         ],
         "resultsLimit": 25,
